@@ -26,28 +26,28 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_path', action='store', dest='train_path', 
-    default='../data/coco/box_label/input_train2014.txt',
+    default='../data/coco/bbox_gen/box_label/input_train2014.txt',
     help='Path to train data')
 parser.add_argument('--dev_path', action='store', dest='dev_path', 
-    default='../data/coco/box_label/input_val2014.txt',
+    default='../data/coco/bbox_gen/box_label/input_val2014.txt',
     help='Path to dev data')
 parser.add_argument('--train_filename_path', action='store', dest='train_filename_path', 
-    default='../data/coco/box_label/filenames_train2014.txt',
+    default='../data/coco/bbox_gen/box_label/filenames_train2014.txt',
     help='Path to train filename data')
 parser.add_argument('--dev_filename_path', action='store', dest='dev_filename_path', 
-    default='../data/coco/box_label/filenames_val2014.txt',
+    default='../data/coco/bbox_gen/box_label/filenames_val2014.txt',
     help='Path to dev filename data')
 parser.add_argument('--mean_std_path', action='store', dest='mean_std_path', 
-    default='../data/coco/box_label/mean_std_train2014.txt',
+    default='../data/coco/bbox_gen/box_label/mean_std_train2014.txt',
     help='Path to dev data')
 parser.add_argument('--gaussian_dict_path', action='store', dest='gaussian_dict_path', 
-    default='../data/coco/box_label/gaussian_dict.npy',
+    default='../data/coco/bbox_gen/box_label/gaussian_dict.npy',
     help='Path to gaussian dict')
 parser.add_argument('--vocab_path', action='store', dest='vocab_path', 
     default='../data/coco/captions.pickle',
     help='Path to the vocab path')
 parser.add_argument('--box_saving_folder', action='store', dest='box_saving_folder', 
-    default='../data/coco/gen_masks',
+    default='../output/gen_masks', # ../data/coco/gen_masks
     help='Path to box saving folder')
 parser.add_argument('--expt_dir', action='store', dest='expt_dir', default='experiment',
     help='Path to experiment directory. If load_checkpoint is True, \
@@ -74,7 +74,7 @@ parser.add_argument('--early_stop_len', type=int, default=10,
 parser.add_argument('--output_opt', type=int, default=0, help='The output option (0/1)')
 parser.add_argument('--embedding_dim', type=int, default=256, help='The embedding dimension')
 parser.add_argument('--encoder_path', type=str, 
-    default='../data/coco/pretrained/text_encoder100.pth', 
+    default='../data/coco/bbox_gen/pretrained/text_encoder100.pth', 
     help='encoder path.')
 
 opt = parser.parse_args()
@@ -158,9 +158,9 @@ elif not opt.is_training and opt.load_checkpoint is not None:
 
     logging.info("loading checkpoint from {}".format(os.path.join(opt.expt_dir, 
         Checkpoint.CHECKPOINT_DIR_NAME, opt.load_checkpoint)))
-    checkpoint_path = os.path.join(opt.expt_dir, Checkpoint.CHECKPOINT_DIR_NAME, 
-        opt.load_checkpoint)
-    checkpoint = Checkpoint.load(checkpoint_path)
+    #checkpoint_path = os.path.join(opt.expt_dir, Checkpoint.CHECKPOINT_DIR_NAME, 
+    #    opt.load_checkpoint)
+    checkpoint = Checkpoint.load(opt.load_checkpoint)
     decoder = checkpoint.model
     decoder.eval()
 
@@ -173,7 +173,7 @@ elif not opt.is_training and opt.load_checkpoint is not None:
         print('calculating means and stds of box positions and sizes...')
         get_class_sta(opt.train_path, opt.gaussian_dict_path)
 
-    gaussian_dict = np.load(opt.gaussian_dict_path).item()
+    gaussian_dict = np.load(opt.gaussian_dict_path, allow_pickle=True).item()
 
     hidden_size = opt.embedding_dim
     encoder = PreEncoderRNN(len(cap_word2index), nhidden=opt.embedding_dim)
